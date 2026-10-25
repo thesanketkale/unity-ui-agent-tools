@@ -39,7 +39,7 @@ jobs:
                   echo "Missing .meta file for: $ITEM"
                   MISSING_META=$((MISSING_META + 1))
                 fi
-              done < <(find "$ROOT" \( -type f -o -type d \) -print0)
+              done < <(find "$ROOT" -mindepth 1 \( -type f -o -type d \) -print0)
             fi
           done
           if [ "$MISSING_META" -gt 0 ]; then
@@ -89,7 +89,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: cli/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install CLI dependencies
         run: npm ci
