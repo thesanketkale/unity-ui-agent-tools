@@ -1,0 +1,31 @@
+{
+  "$schema": "./schema/config.schema.json",
+  "targetPlatform": "mobile",
+  "minInteractableWidth": 48.0,
+  "minInteractableHeight": 48.0,
+  "maxLayoutGroupDepth": 3,
+  "checkNonInteractiveRaycasts": true,
+  "failOnDuplicateSiblingNames": true,
+  "serializedFieldAllowList": [
+    "m_Text",
+    "m_FontSize",
+    "m_Color",
+    "m_Interactable",
+    "m_RaycastTarget"
+  ],
+  "serializedFieldDenyList": [
+    "m_Script",
+    "m_ObjectHideFlags"
+  ],
+  "ruleSeverities": {
+    "UI001": "error",
+    "UI002": "error",
+    "UI003": "warning",
+    "UI004": "warning",
+    "UI005": "warning",
+    "UI006": "note",
+    "UI007": "note",
+    "UI008": "warning",
+    "UI009": "warning"
+  }
+}
