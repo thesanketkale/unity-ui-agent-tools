@@ -39,7 +39,7 @@ jobs:
                   echo "Missing .meta file for: $ITEM"
                   MISSING_META=$((MISSING_META + 1))
                 fi
-              done < <(find "$ROOT" \( -type f -o -type d \) -print0)
+              done < <(find "$ROOT" -mindepth 1 \( -type f -o -type d \) -print0)
             fi
           done
           if [ "$MISSING_META" -gt 0 ]; then
@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e200f2c78 # v4.3.0
+        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e2005cbab # v4.3.0
         with:
           dotnet-version: |
             8.0.x
@@ -89,7 +89,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: cli/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install CLI dependencies
         run: npm ci
