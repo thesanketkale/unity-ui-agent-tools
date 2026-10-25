@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "UiContext",
+          "version": "0.1.0",
+          "informationUri": "https://github.com/thesanketkale/unity-ui-agent-tools",
+          "rules": [
+            {
+              "id": "UI003",
+              "name": "MinimumTargetSize",
+              "shortDescription": {
+                "text": "Validates that touch/click hit targets meet accessible size standards."
+              }
+            }
+          ]
+        }
+      },
+      "results": []
+    }
+  ]
+}
