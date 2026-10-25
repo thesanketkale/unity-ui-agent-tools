@@ -1,0 +1,25 @@
+{
+  "name": "Sample.Tests.Editor",
+  "rootNamespace": "Sample.Tests.Editor",
+  "references": [
+    "io.github.thesanketkale.ui-context.core",
+    "io.github.thesanketkale.ui-context.editor",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

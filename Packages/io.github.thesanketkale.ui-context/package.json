@@ -1,0 +1,24 @@
+{
+  "name": "io.github.thesanketkale.ui-context",
+  "version": "0.1.0",
+  "displayName": "UI Context for AI Agents",
+  "description": "Unity editor package that exports uGUI hierarchies, prefab structure and annotated screenshots as agent-readable artefacts, with UI validation rules, a semantic diff and an MCP adapter for AI coding agents.",
+  "unity": "2022.3",
+  "unityRelease": "40f1",
+  "keywords": [
+    "ui",
+    "ugui",
+    "ai-agents",
+    "mcp",
+    "developer-tools",
+    "editor-tools"
+  ],
+  "author": {
+    "name": "Sanket Kale",
+    "url": "https://github.com/thesanketkale"
+  },
+  "dependencies": {
+    "com.unity.ugui": "1.0.0",
+    "com.unity.textmeshpro": "3.0.6"
+  }
+}

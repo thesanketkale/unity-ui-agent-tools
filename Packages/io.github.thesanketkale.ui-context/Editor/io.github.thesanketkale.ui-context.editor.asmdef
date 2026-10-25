@@ -1,0 +1,26 @@
+{
+  "name": "io.github.thesanketkale.ui-context.editor",
+  "rootNamespace": "UiContext.Editor",
+  "references": [
+    "io.github.thesanketkale.ui-context.core",
+    "Unity.TextMeshPro",
+    "UnityEngine.UI"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [
+    {
+      "name": "com.unity.localization",
+      "expression": "1.0.0",
+      "define": "UI_CONTEXT_LOCALIZATION"
+    }
+  ],
+  "noEngineReferences": false
+}
