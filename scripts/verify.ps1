@@ -33,7 +33,7 @@ foreach ($Root in $AssetRoots) {
         $Items = Get-ChildItem -Path $Root -Recurse | Where-Object {
             $_.FullName -notmatch "\.meta$" -and
             $_.Name -notmatch "~$" -and
-            $_.FullName -notmatch "[\/\\](bin|obj|Documentation~)[\/\\]"
+            $_.FullName -notmatch "[\/\\](bin|obj|Documentation~)(\Z|[\/\\])"
         }
         foreach ($Item in $Items) {
             $ExpectedMeta = "$($Item.FullName).meta"

@@ -20,7 +20,7 @@ for ROOT in "$REPO_ROOT/Packages/io.github.thesanketkale.ui-context" "$REPO_ROOT
     if [ -d "$ROOT" ]; then
         while IFS= read -r -d '' ITEM; do
             case "$ITEM" in
-                *.meta|*~|*~/|*/bin/*|*/obj/*|*/Documentation~/*) continue ;;
+                *.meta|*~|*~/|*/bin|*/bin/*|*/obj|*/obj/*|*/Documentation~|*/Documentation~/*) continue ;;
             esac
             if [ ! -f "$ITEM.meta" ]; then
                 echo "Missing .meta file for: $ITEM"
