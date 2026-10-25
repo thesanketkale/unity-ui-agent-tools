@@ -1,0 +1,38 @@
+# Set default behavior to automatically normalize line endings.
+* text=auto eol=lf
+
+# Explicit text file formats
+*.cs text diff=csharp
+*.ts text diff=typescript
+*.js text
+*.json text
+*.md text
+*.yml text
+*.yaml text
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.editorconfig text
+*.gitattributes text
+*.gitignore text
+
+# Unity text files
+*.meta text
+*.mat text
+*.prefab text
+*.unity text
+*.asset text
+*.anim text
+*.controller text
+*.asmdef text
+
+# Unity binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.tga binary
+*.psd binary
+*.fbx binary
+*.obj binary
+*.wav binary
+*.mp3 binary
+*.dll binary

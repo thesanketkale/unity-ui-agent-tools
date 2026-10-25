@@ -1,0 +1,22 @@
+{
+  "name": "unity-ui-agent-tools-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Unity editor package and MCP adapter that makes uGUI readable by AI agents",
+  "scripts": {
+    "verify:fast": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1 fast",
+    "verify:full": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1 full",
+    "guard": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/guard.ps1",
+    "test:cli": "npm --prefix cli test",
+    "build:cli": "npm --prefix cli run build"
+  },
+  "workspaces": [
+    "cli"
+  ],
+  "author": "Sanket Kale",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesanketkale/unity-ui-agent-tools.git"
+  }
+}

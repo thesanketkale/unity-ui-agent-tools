@@ -1,0 +1,11 @@
+unity-ui-agent-tools (canonical: unity-ui-context)
+Copyright (c) 2026 Sanket Kale
+
+This product includes software developed by Sanket Kale as part of the open source
+developer ecosystem.
+
+Clean-Room Compliance Notice:
+This project is an independent clean-room implementation authored from scratch.
+It contains no code, assets, identifiers, or proprietary data derived from
+any private repositories or third-party client engagements.
+All sample hierarchy data and visual assets are procedurally generated or synthetically authored.
