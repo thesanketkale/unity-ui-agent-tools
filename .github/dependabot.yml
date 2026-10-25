@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+
+  - package-ecosystem: "npm"
+    directory: "/cli"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+
+  - package-ecosystem: "nuget"
+    directory: "/tests/UiContext.Core.Tests"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "test"

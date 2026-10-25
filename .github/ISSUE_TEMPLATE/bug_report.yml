@@ -1,0 +1,34 @@
+name: Bug Report
+description: File a bug report for unity-ui-agent-tools
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting a bug! Please fill out the details below.
+  - type: input
+    id: version
+    attributes:
+      label: Package & Unity Version
+      description: What versions of unity-ui-agent-tools and Unity are you using?
+      placeholder: "e.g. unity-ui-agent-tools v0.1.0, Unity 2022.3.40f1"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Exact steps to reproduce the issue.
+      placeholder: |
+        1. Open prefab '...'
+        2. Run 'ui-context export ...'
+        3. Observe error '...'
+    validations:
+      required: true

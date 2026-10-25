@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions: {}
+
+jobs:
+  repo-guard:
+    name: Clean-room and Meta Guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run Clean-Room & Secrets Guard
+        run: bash tools/guard.sh .
+
+      - name: Verify Unity .meta File Integrity
+        run: |
+          MISSING_META=0
+          for ROOT in "Packages/io.github.thesanketkale.ui-context" "Projects/Sample/Assets"; do
+            if [ -d "$ROOT" ]; then
+              while IFS= read -r -d '' ITEM; do
+                case "$ITEM" in
+                  *.meta|*~|*~/|*/bin|*/bin/*|*/obj|*/obj/*|*/Documentation~|*/Documentation~/*) continue ;;
+                esac
+                if [ ! -f "$ITEM.meta" ]; then
+                  echo "Missing .meta file for: $ITEM"
+                  MISSING_META=$((MISSING_META + 1))
+                fi
+              done < <(find "$ROOT" \( -type f -o -type d \) -print0)
+            fi
+          done
+          if [ "$MISSING_META" -gt 0 ]; then
+            echo "FAILED: $MISSING_META missing .meta file(s) found!"
+            exit 1
+          fi
+          echo "Unity .meta check PASSED."
+
+  dotnet-test:
+    name: .NET Core Engine Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e200f2c78 # v4.3.0
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore tests/UiContext.Core.Tests/UiContext.Core.Tests.csproj
+
+      - name: Build Core & Tests
+        run: dotnet build tests/UiContext.Core.Tests/UiContext.Core.Tests.csproj -c Release --no-restore
+
+      - name: Run xUnit Test Suite
+        run: dotnet test tests/UiContext.Core.Tests/UiContext.Core.Tests.csproj -c Release --no-build --verbosity normal
+
+  node-test:
+    name: TypeScript CLI, MCP & Schema Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: cli/package-lock.json
+
+      - name: Install CLI dependencies
+        run: npm ci
+        working-directory: cli
+
+      - name: Build TypeScript CLI
+        run: npm run build
+        working-directory: cli
+
+      - name: Run Vitest & Schema Validation Tests
+        run: npm test
+        working-directory: cli
