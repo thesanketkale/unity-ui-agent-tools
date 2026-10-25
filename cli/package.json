@@ -1,0 +1,32 @@
+{
+  "name": "@thesanketkale/ui-context",
+  "version": "0.1.0",
+  "description": "CLI and MCP server adapter for unity-ui-agent-tools",
+  "bin": {
+    "ui-context": "./bin/ui-context.js"
+  },
+  "main": "./dist/cli.js",
+  "types": "./dist/cli.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "node ./bin/ui-context.js",
+    "mcp": "node ./dist/mcp-server.js",
+    "test": "vitest run"
+  },
+  "author": "Sanket Kale",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "commander": "^12.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3"
+  }
+}

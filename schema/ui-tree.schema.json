@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/thesanketkale/unity-ui-agent-tools/main/schema/ui-tree.schema.json",
+  "title": "UiTree",
+  "description": "Complete uGUI hierarchy tree exported by unity-ui-agent-tools",
+  "type": "object",
+  "required": ["schemaVersion", "exportTimestamp", "targetName", "targetType", "root"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "exportTimestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unityVersion": {
+      "type": "string"
+    },
+    "targetName": {
+      "type": "string"
+    },
+    "targetType": {
+      "type": "string",
+      "enum": ["Prefab", "Scene", "SceneObject", "Selection"]
+    },
+    "canvasContext": {
+      "type": "object",
+      "properties": {
+        "renderMode": { "type": "string" },
+        "pixelPerfect": { "type": "boolean" },
+        "sortingOrder": { "type": "integer" },
+        "scaler": {
+          "type": "object",
+          "properties": {
+            "uiScaleMode": { "type": "string" },
+            "referenceResolution": {
+              "type": "object",
+              "required": ["x", "y"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" }
+              }
+            },
+            "matchWidthOrHeight": { "type": "number" }
+          }
+        }
+      }
+    },
+    "root": {
+      "$ref": "#/definitions/UiNode"
+    },
+    "statistics": {
+      "type": "object",
+      "properties": {
+        "totalNodeCount": { "type": "integer" },
+        "activeNodeCount": { "type": "integer" },
+        "interactableCount": { "type": "integer" },
+        "textElementCount": { "type": "integer" },
+        "maxHierarchyDepth": { "type": "integer" }
+      }
+    }
+  },
+  "definitions": {
+    "UiNode": {
+      "type": "object",
+      "required": ["id", "name", "activeSelf", "activeInHierarchy", "rect", "components", "children"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "activeSelf": { "type": "boolean" },
+        "activeInHierarchy": { "type": "boolean" },
+        "tag": { "type": "string" },
+        "layer": { "type": "string" },
+        "rect": {
+          "type": "object",
+          "required": ["anchorMin", "anchorMax", "pivot", "resolvedRect"],
+          "properties": {
+            "anchorMin": { "$ref": "#/definitions/Vector2" },
+            "anchorMax": { "$ref": "#/definitions/Vector2" },
+            "pivot": { "$ref": "#/definitions/Vector2" },
+            "anchoredPosition": { "$ref": "#/definitions/Vector2" },
+            "sizeDelta": { "$ref": "#/definitions/Vector2" },
+            "resolvedRect": {
+              "type": "object",
+              "required": ["x", "y", "width", "height"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "width": { "type": "number" },
+                "height": { "type": "number" }
+              }
+            }
+          }
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["typeName"],
+            "properties": {
+              "typeName": { "type": "string" },
+              "enabled": { "type": "boolean" },
+              "properties": { "type": "object" },
+              "listeners": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "targetObjectName": { "type": "string" },
+                    "targetComponentType": { "type": "string" },
+                    "methodName": { "type": "string" },
+                    "mode": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UiNode"
+          }
+        }
+      }
+    },
+    "Vector2": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/thesanketkale/unity-ui-agent-tools/main/schema/config.schema.json",
+  "title": "UiContextConfig",
+  "description": "Project configuration file (.uicontext.json) for unity-ui-agent-tools",
+  "type": "object",
+  "properties": {
+    "targetPlatform": {
+      "type": "string",
+      "enum": ["desktop", "mobile", "xr"]
+    },
+    "minInteractableWidth": { "type": "number", "minimum": 1 },
+    "minInteractableHeight": { "type": "number", "minimum": 1 },
+    "maxLayoutGroupDepth": { "type": "integer", "minimum": 1 },
+    "checkNonInteractiveRaycasts": { "type": "boolean" },
+    "failOnDuplicateSiblingNames": { "type": "boolean" },
+    "serializedFieldAllowList": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "serializedFieldDenyList": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "ruleSeverities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["error", "warning", "note", "off"]
+      }
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/thesanketkale/unity-ui-agent-tools/main/schema/ui-validation.schema.json",
+  "title": "UiValidationSarif",
+  "description": "SARIF 2.1.0 diagnostic output for unity-ui-agent-tools",
+  "type": "object",
+  "required": ["version", "runs"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string", "enum": ["2.1.0"] },
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tool", "results"],
+        "properties": {
+          "tool": {
+            "type": "object",
+            "required": ["driver"],
+            "properties": {
+              "driver": {
+                "type": "object",
+                "required": ["name", "version", "rules"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "version": { "type": "string" },
+                  "informationUri": { "type": "string" },
+                  "rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["id", "name"],
+                      "properties": {
+                        "id": { "type": "string" },
+                        "name": { "type": "string" },
+                        "shortDescription": {
+                          "type": "object",
+                          "properties": {
+                            "text": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["ruleId", "level", "message", "locations"],
+              "properties": {
+                "ruleId": { "type": "string" },
+                "level": { "type": "string", "enum": ["error", "warning", "note", "none"] },
+                "message": {
+                  "type": "object",
+                  "required": ["text"],
+                  "properties": {
+                    "text": { "type": "string" }
+                  }
+                },
+                "locations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "physicalLocation": { "type": "object" },
+                      "logicalLocations": { "type": "array" }
+                    }
+                  }
+                },
+                "properties": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

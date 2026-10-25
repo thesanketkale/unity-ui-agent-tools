@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/thesanketkale/unity-ui-agent-tools/main/schema/ui-outline.schema.json",
+  "title": "UiOutline",
+  "description": "Validation schema for token-efficient Markdown UI outline text files",
+  "type": "string"
+}
