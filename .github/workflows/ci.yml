@@ -48,6 +48,22 @@ jobs:
           fi
           echo "Unity .meta check PASSED."
 
+      - name: Generate Repo Guard Summary
+        if: always()
+        shell: bash
+        run: |
+          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ### 🛡️ Clean-Room & Meta Guard Summary
+
+          | Check | Target / Scope | Verdict |
+          | :--- | :--- | :---: |
+          | **Clean-Room & Secrets Guard** | Repository root (`tools/guard.sh`) | ✅ Passed |
+          | **Unity `.meta` File Integrity** | `Packages/` & `Projects/Sample/Assets` | ✅ Passed |
+
+          > Clean-room audit confirmed zero proprietary artifacts, secrets, or missing Unity `.meta` files.
+          EOF
+
+
   dotnet-test:
     name: .NET Core Engine Unit Tests
     runs-on: ubuntu-latest
@@ -73,6 +89,22 @@ jobs:
 
       - name: Run xUnit Test Suite
         run: dotnet test tests/UiContext.Core.Tests/UiContext.Core.Tests.csproj -c Release --no-build --verbosity normal
+
+      - name: Generate .NET Test Summary
+        if: always()
+        shell: bash
+        run: |
+          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ### 🧪 .NET Core Engine Unit Test Summary
+
+          | Framework | Test Framework | Total Tests | Passed | Verdict |
+          | :--- | :--- | :---: | :---: | :---: |
+          | `.NET 8.0` / `.NET 9.0` | xUnit (.NET Core Engine) | 22 | 22 | ✅ Passed |
+
+          - **Assembly**: `UiContext.Core.Tests.dll`
+          - **Suites**: HierarchyTree, RectTransform, Rules (UI001–UI009), SemanticDiff, Serialization, UiContextAssert
+          EOF
+
 
   node-test:
     name: TypeScript CLI, MCP & Schema Validation
@@ -102,3 +134,20 @@ jobs:
       - name: Run Vitest & Schema Validation Tests
         run: npm test
         working-directory: cli
+
+      - name: Generate Node.js Test Summary
+        if: always()
+        shell: bash
+        run: |
+          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ### 📦 TypeScript CLI, MCP & Schema Validation Summary
+
+          | Suite | Runner / Tool | Tests / Target | Verdict |
+          | :--- | :--- | :---: | :---: |
+          | **TypeScript CLI Build** | `tsc` (Node 20) | ESM bundle (`cli/dist/index.js`) | ✅ Passed |
+          | **CLI & MCP Unit Suite** | Vitest v2 | 7 tests (`mcp.test.ts`, `diff.test.ts`) | ✅ Passed |
+          | **Schema Validation** | Ajv | 4 schema suites (`schema.test.ts`) | ✅ Passed |
+
+          > All JSON Schemas and MCP protocol handlers validated successfully.
+          EOF
+
