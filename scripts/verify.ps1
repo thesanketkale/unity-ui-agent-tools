@@ -1,117 +1,31 @@
-<#
-.SYNOPSIS
-    Repository verification runner for unity-ui-agent-tools.
-.DESCRIPTION
-    Runs fast lints and full multi-runtime unit, schema, and meta-file test suites.
-#>
+# scripts/verify.ps1: Windows PowerShell entry point. Runs scripts/verify.sh through Git Bash,
+# so there is one verify script for every OS and every tool.
+#   ./scripts/verify.ps1 fast
+#   ./scripts/verify.ps1 full
+param([ValidateSet("fast", "full")][string]$Mode = "full")
 
-param(
-    [ValidateSet("fast", "full")]
-    [string]$Mode = "full"
-)
+$kitHome = if ($env:USERPROFILE) { $env:USERPROFILE } else { $HOME }
+$kitBin = Join-Path $kitHome '.agent-team\bin'
+if ((Test-Path $kitBin) -and ($env:Path -notlike "*$kitBin*")) { $env:Path = "$kitBin;$env:Path" }
 
-$ErrorActionPreference = "Stop"
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$candidates = @(
+    "C:\Program Files\Git\bin\bash.exe",
+    (Join-Path $env:ProgramFiles "Git\bin\bash.exe"),
+    (Join-Path ${env:ProgramFiles(x86)} "Git\bin\bash.exe"),
+    (Join-Path $env:LOCALAPPDATA "Programs\Git\bin\bash.exe")
+) | Where-Object { $_ -and (Test-Path $_) }
 
-Write-Host "=== Starting unity-ui-agent-tools Verification ($Mode mode) ===" -ForegroundColor Cyan
-
-# 1. Clean-room & secrets check
-Write-Host "`n[Step 1/5] Checking clean-room and secrets baseline..." -ForegroundColor Yellow
-& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "../tools/guard.ps1")
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-# 2. Meta-file integrity check (Unity XR requirement)
-Write-Host "`n[Step 2/5] Checking Unity .meta file integrity..." -ForegroundColor Yellow
-$MissingMeta = 0
-$AssetRoots = @(
-    (Join-Path $RepoRoot "Packages/io.github.thesanketkale.ui-context"),
-    (Join-Path $RepoRoot "Projects/Sample/Assets")
-)
-
-foreach ($Root in $AssetRoots) {
-    if (Test-Path $Root) {
-        $Items = Get-ChildItem -Path $Root -Recurse | Where-Object {
-            $_.FullName -notmatch "\.meta$" -and
-            $_.Name -notmatch "~$" -and
-            $_.FullName -notmatch "[\/\\](bin|obj|Documentation~)(\Z|[\/\\])"
-        }
-        foreach ($Item in $Items) {
-            $ExpectedMeta = "$($Item.FullName).meta"
-            if (-not (Test-Path $ExpectedMeta)) {
-                Write-Host "Missing .meta file for: $($Item.FullName)" -ForegroundColor Red
-                $MissingMeta++
-            }
-        }
-    }
+$bash = $candidates | Select-Object -First 1
+if (-not $bash) {   # Git for Windows in a custom folder: <git>\cmd\git.exe -> <git>\bin\bash.exe
+  $g = Get-Command git.exe -ErrorAction SilentlyContinue
+  if ($g) { $c = Join-Path (Split-Path -Parent (Split-Path -Parent $g.Source)) "bin\bash.exe"; if (Test-Path $c) { $bash = $c } }
 }
-
-if ($MissingMeta -gt 0) {
-    Write-Host "FAILED: $MissingMeta missing .meta file(s) found!" -ForegroundColor Red
-    exit 1
+if (-not $bash) {
+  $cmd = Get-Command bash.exe -ErrorAction SilentlyContinue
+  if ($cmd -and $cmd.Source -notlike "*\System32\*") { $bash = $cmd.Source }
 }
-Write-Host "Unity .meta check PASSED." -ForegroundColor Green
+if (-not $bash) { Write-Error "Git Bash not found. Install Git for Windows (https://git-scm.com/download/win)."; exit 1 }
 
-# 3. Workflow syntax check
-Write-Host "`n[Step 3/5] Validating GitHub Actions workflow schemas..." -ForegroundColor Yellow
-$WorkflowsDir = Join-Path $RepoRoot ".github/workflows"
-if (Test-Path $WorkflowsDir) {
-    $WfFiles = Get-ChildItem -Path $WorkflowsDir -Filter "*.yml"
-    foreach ($Wf in $WfFiles) {
-        # Basic validation: ensure non-empty and well-formed headers
-        $Content = Get-Content $Wf.FullName -Raw
-        if ($Content -notmatch "name:" -or $Content -notmatch "on:") {
-            Write-Host "Invalid workflow file: $($Wf.Name)" -ForegroundColor Red
-            exit 1
-        }
-    }
-    Write-Host "Workflow syntax check PASSED ($($WfFiles.Count) workflows verified)." -ForegroundColor Green
-} else {
-    Write-Host "No workflows directory found yet (skipping in early milestones)." -ForegroundColor Gray
-}
-
-if ($Mode -eq "fast") {
-    Write-Host "`n=== Verification PASSED (fast mode complete) ===" -ForegroundColor Green
-    exit 0
-}
-
-# 4. .NET Core engine unit tests
-Write-Host "`n[Step 4/5] Running .NET Core test suite..." -ForegroundColor Yellow
-$TestCsproj = Join-Path $RepoRoot "tests/UiContext.Core.Tests/UiContext.Core.Tests.csproj"
-if (Test-Path $TestCsproj) {
-    dotnet test $TestCsproj -c Release --verbosity normal
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "FAILED: .NET Core unit tests failed!" -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
-    Write-Host ".NET Core test suite PASSED." -ForegroundColor Green
-} else {
-    Write-Host "Test project not yet created (skipping in early milestones)." -ForegroundColor Gray
-}
-
-# 5. TypeScript CLI and MCP test suite
-Write-Host "`n[Step 5/5] Running TypeScript CLI & MCP test suite..." -ForegroundColor Yellow
-$CliDir = Join-Path $RepoRoot "cli"
-$CliPackageJson = Join-Path $CliDir "package.json"
-if (Test-Path $CliPackageJson) {
-    Push-Location $CliDir
-    try {
-        if (-not (Test-Path "node_modules")) {
-            Write-Host "Installing CLI dependencies..." -ForegroundColor Gray
-            npm install --silent
-        }
-        npm test
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "FAILED: CLI and MCP tests failed!" -ForegroundColor Red
-            exit $LASTEXITCODE
-        }
-    }
-    finally {
-        Pop-Location
-    }
-    Write-Host "CLI & MCP test suite PASSED." -ForegroundColor Green
-} else {
-    Write-Host "CLI package not yet created (skipping in early milestones)." -ForegroundColor Gray
-}
-
-Write-Host "`n=== Verification PASSED (full mode complete) ===" -ForegroundColor Green
-exit 0
+$verifySh = (Join-Path $PSScriptRoot "verify.sh").Replace("\", "/")
+& $bash $verifySh $Mode
+exit $LASTEXITCODE

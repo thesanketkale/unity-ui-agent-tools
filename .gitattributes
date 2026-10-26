@@ -10,6 +10,8 @@
 *.yml text
 *.yaml text
 *.sh text eol=lf
+scripts/verify.sh text eol=lf
+.githooks/* text eol=lf
 *.ps1 text eol=crlf
 *.editorconfig text
 *.gitattributes text
