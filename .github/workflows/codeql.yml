@@ -29,17 +29,17 @@ jobs:
       matrix:
         include:
           - language: csharp
-            build-mode: autobuild
+            build-mode: none
           - language: javascript-typescript
             build-mode: none
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup .NET (for C#)
         if: matrix.language == 'csharp'
-        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e2005cbab # v4.3.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 8.0.x
 
@@ -53,3 +53,30 @@ jobs:
         uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           category: "/language:${{ matrix.language }}"
+
+      - name: Generate CodeQL Summary
+        if: always()
+        shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
+          SCAN_LANG: ${{ matrix.language }}
+          SCAN_MODE: ${{ matrix.build-mode }}
+        run: |
+          STATUS_TEXT="✅ Passed"
+          if [ "$JOB_STATUS" != "success" ]; then
+            STATUS_TEXT="❌ Failed"
+          fi
+          {
+            cat << 'EOF'
+          ### 🛡️ CodeQL Security Analysis Summary
+
+          | Language | Build Mode | Analysis Result |
+          | :--- | :--- | :---: |
+          EOF
+            printf "| \`%s\` | \`%s\` | %s |\n" "$SCAN_LANG" "$SCAN_MODE" "$STATUS_TEXT"
+            cat << 'EOF'
+
+          > Static application security testing (SAST) completed.
+          EOF
+          } >> "$GITHUB_STEP_SUMMARY"
+
