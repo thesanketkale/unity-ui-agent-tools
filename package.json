@@ -1,6 +1,6 @@
 {
   "name": "unity-ui-agent-tools-monorepo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Unity editor package and MCP adapter that makes uGUI readable by AI agents",
   "scripts": {

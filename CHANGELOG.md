@@ -5,6 +5,14 @@ All notable changes to `unity-ui-agent-tools` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1](https://github.com/thesanketkale/unity-ui-agent-tools/compare/v0.1.0...v0.1.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **ci:** correct release-please-action v4.1.4 commit SHA ([2dca78e](https://github.com/thesanketkale/unity-ui-agent-tools/commit/2dca78e38823b23776f5337254f0e70894707df5))
+* **ci:** ignore files inside tilde directories in meta check ([7b8ce23](https://github.com/thesanketkale/unity-ui-agent-tools/commit/7b8ce23cb045733dc01789343d01b0888c64b175))
+
 ## [0.1.0] - 2026-10-25
 
 ### Added
