@@ -16,7 +16,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Run Release Please
-        uses: googleapis/release-please-action@7987452d56ee513710370b349b1ce55452a8b98b # v4.1.4
+        uses: googleapis/release-please-action@d1a8f221d7723166f48a584aebba00ef3f6febec # v4.1.4
         with:
           release-type: node
           package-name: io.github.thesanketkale.ui-context
