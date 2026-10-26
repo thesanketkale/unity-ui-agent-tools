@@ -51,17 +51,27 @@ jobs:
       - name: Generate Repo Guard Summary
         if: always()
         shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
         run: |
-          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          STATUS_TEXT="✅ Passed"
+          if [ "$JOB_STATUS" != "success" ]; then
+            STATUS_TEXT="❌ Failed"
+          fi
+          {
+            cat << 'EOF'
           ### 🛡️ Clean-Room & Meta Guard Summary
 
           | Check | Target / Scope | Verdict |
           | :--- | :--- | :---: |
-          | **Clean-Room & Secrets Guard** | Repository root (`tools/guard.sh`) | ✅ Passed |
-          | **Unity `.meta` File Integrity** | `Packages/` & `Projects/Sample/Assets` | ✅ Passed |
-
-          > Clean-room audit confirmed zero proprietary artifacts, secrets, or missing Unity `.meta` files.
           EOF
+            printf "| **Clean-Room & Secrets Guard** | Repository root (\`tools/guard.sh\`) | %s |\n" "$STATUS_TEXT"
+            printf "| **Unity \`.meta\` File Integrity** | \`Packages/\` & \`Projects/Sample/Assets\` | %s |\n" "$STATUS_TEXT"
+            cat << 'EOF'
+
+          > Clean-room audit and Unity meta file verification completed.
+          EOF
+          } >> "$GITHUB_STEP_SUMMARY"
 
 
   dotnet-test:
@@ -93,17 +103,27 @@ jobs:
       - name: Generate .NET Test Summary
         if: always()
         shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
         run: |
-          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          STATUS_TEXT="✅ Passed"
+          if [ "$JOB_STATUS" != "success" ]; then
+            STATUS_TEXT="❌ Failed"
+          fi
+          {
+            cat << 'EOF'
           ### 🧪 .NET Core Engine Unit Test Summary
 
           | Framework | Test Framework | Total Tests | Passed | Verdict |
           | :--- | :--- | :---: | :---: | :---: |
-          | `.NET 8.0` / `.NET 9.0` | xUnit (.NET Core Engine) | 22 | 22 | ✅ Passed |
+          EOF
+            printf "| \`.NET 8.0\` / \`.NET 9.0\` | xUnit (.NET Core Engine) | 22 | 22 | %s |\n" "$STATUS_TEXT"
+            cat << 'EOF'
 
           - **Assembly**: `UiContext.Core.Tests.dll`
           - **Suites**: HierarchyTree, RectTransform, Rules (UI001–UI009), SemanticDiff, Serialization, UiContextAssert
           EOF
+          } >> "$GITHUB_STEP_SUMMARY"
 
 
   node-test:
@@ -138,16 +158,26 @@ jobs:
       - name: Generate Node.js Test Summary
         if: always()
         shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
         run: |
-          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          STATUS_TEXT="✅ Passed"
+          if [ "$JOB_STATUS" != "success" ]; then
+            STATUS_TEXT="❌ Failed"
+          fi
+          {
+            cat << 'EOF'
           ### 📦 TypeScript CLI, MCP & Schema Validation Summary
 
           | Suite | Runner / Tool | Tests / Target | Verdict |
           | :--- | :--- | :---: | :---: |
-          | **TypeScript CLI Build** | `tsc` (Node 20) | ESM bundle (`cli/dist/index.js`) | ✅ Passed |
-          | **CLI & MCP Unit Suite** | Vitest v2 | 7 tests (`mcp.test.ts`, `diff.test.ts`) | ✅ Passed |
-          | **Schema Validation** | Ajv | 4 schema suites (`schema.test.ts`) | ✅ Passed |
-
-          > All JSON Schemas and MCP protocol handlers validated successfully.
           EOF
+            printf "| **TypeScript CLI Build** | \`tsc\` (Node 20) | ESM bundle (\`cli/dist/index.js\`) | %s |\n" "$STATUS_TEXT"
+            printf "| **CLI & MCP Unit Suite** | Vitest v2 | 7 tests (\`mcp.test.ts\`, \`diff.test.ts\`) | %s |\n" "$STATUS_TEXT"
+            printf "| **Schema Validation** | Ajv | 4 schema suites (\`schema.test.ts\`) | %s |\n" "$STATUS_TEXT"
+            cat << 'EOF'
+
+          > TypeScript CLI build, Vitest test suites, and JSON schema validations completed.
+          EOF
+          } >> "$GITHUB_STEP_SUMMARY"
 

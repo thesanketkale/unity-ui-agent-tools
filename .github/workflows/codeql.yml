@@ -58,16 +58,25 @@ jobs:
         if: always()
         shell: bash
         env:
-          CODEQL_LANG: ${{ matrix.language }}
-          CODEQL_BUILD_MODE: ${{ matrix.build-mode }}
+          JOB_STATUS: ${{ job.status }}
+          SCAN_LANG: ${{ matrix.language }}
+          SCAN_MODE: ${{ matrix.build-mode }}
         run: |
-          cat << EOF >> "$GITHUB_STEP_SUMMARY"
+          STATUS_TEXT="✅ Passed"
+          if [ "$JOB_STATUS" != "success" ]; then
+            STATUS_TEXT="❌ Failed"
+          fi
+          {
+            cat << 'EOF'
           ### 🛡️ CodeQL Security Analysis Summary
 
           | Language | Build Mode | Analysis Result |
           | :--- | :--- | :---: |
-          | \`$CODEQL_LANG\` | \`$CODEQL_BUILD_MODE\` | ✅ Completed |
-
-          > Static application security testing (SAST) finished for \`$CODEQL_LANG\`. Zero security alerts detected.
           EOF
+            printf "| \`%s\` | \`%s\` | %s |\n" "$SCAN_LANG" "$SCAN_MODE" "$STATUS_TEXT"
+            cat << 'EOF'
+
+          > Static application security testing (SAST) completed.
+          EOF
+          } >> "$GITHUB_STEP_SUMMARY"
 

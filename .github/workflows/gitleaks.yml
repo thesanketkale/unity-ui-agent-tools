@@ -33,14 +33,26 @@ jobs:
       - name: Generate Gitleaks Summary
         if: always()
         shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
         run: |
-          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          STATUS_TEXT="✅ Clean"
+          LEAKS_COUNT="0"
+          if [ "$JOB_STATUS" != "success" ]; then
+            STATUS_TEXT="❌ Failed"
+            LEAKS_COUNT="Detected / Error"
+          fi
+          {
+            cat << 'EOF'
           ### 🔒 Gitleaks Secret Detection Summary
 
           | Scan Scope | Scanner / Action | Leaks Found | Verdict |
           | :--- | :--- | :---: | :---: |
-          | **Full Git History** (`fetch-depth: 0`) | Gitleaks Action v3.0.0 | 0 | ✅ Clean |
-
-          > Repository history scanned. Zero secrets, tokens, or private credentials detected.
           EOF
+            printf "| **Full Git History** (\`fetch-depth: 0\`) | Gitleaks Action v3.0.0 | %s | %s |\n" "$LEAKS_COUNT" "$STATUS_TEXT"
+            cat << 'EOF'
+
+          > Repository history secret scan completed.
+          EOF
+          } >> "$GITHUB_STEP_SUMMARY"
 
