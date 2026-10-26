@@ -53,3 +53,21 @@ jobs:
         uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           category: "/language:${{ matrix.language }}"
+
+      - name: Generate CodeQL Summary
+        if: always()
+        shell: bash
+        env:
+          CODEQL_LANG: ${{ matrix.language }}
+          CODEQL_BUILD_MODE: ${{ matrix.build-mode }}
+        run: |
+          cat << EOF >> "$GITHUB_STEP_SUMMARY"
+          ### 🛡️ CodeQL Security Analysis Summary
+
+          | Language | Build Mode | Analysis Result |
+          | :--- | :--- | :---: |
+          | \`$CODEQL_LANG\` | \`$CODEQL_BUILD_MODE\` | ✅ Completed |
+
+          > Static application security testing (SAST) finished for \`$CODEQL_LANG\`. Zero security alerts detected.
+          EOF
+

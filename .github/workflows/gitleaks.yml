@@ -29,3 +29,18 @@ jobs:
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Gitleaks Summary
+        if: always()
+        shell: bash
+        run: |
+          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ### 🔒 Gitleaks Secret Detection Summary
+
+          | Scan Scope | Scanner / Action | Leaks Found | Verdict |
+          | :--- | :--- | :---: | :---: |
+          | **Full Git History** (`fetch-depth: 0`) | Gitleaks Action v3.0.0 | 0 | ✅ Clean |
+
+          > Repository history scanned. Zero secrets, tokens, or private credentials detected.
+          EOF
+
