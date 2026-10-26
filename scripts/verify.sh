@@ -1,84 +1,105 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# scripts/verify.sh: the single answer to "is this change OK?"
+#
+# Run by you, the git pre-commit hook, and every agent (Claude Code and Antigravity):
+#   bash scripts/verify.sh fast   # < ~30 s, no test suites: lint, format, types, staged-file checks
+#   bash scripts/verify.sh full   # everything: fast + tests, build, analysis, migrations, validate
+# Exit codes: 0 ok (INCOMPLETE still exits 0, so read the last line), 1 a check failed, 3 full ran no checks at all (not green).
 
+set -o pipefail
 MODE="${1:-full}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+case "$MODE" in fast|full) ;; *) echo "usage: verify.sh [fast|full]" >&2; exit 64 ;; esac
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$ROOT" || exit 1
 
-echo "=== Starting unity-ui-agent-tools Verification ($MODE mode) ==="
+# Ensure agent-team managed tools (~/.agent-team/bin) are in PATH
+if [ -d "$HOME/.agent-team/bin" ]; then
+  case ":$PATH:" in *":$HOME/.agent-team/bin:"*) ;; *) PATH="$HOME/.agent-team/bin:$PATH" ;; esac
+fi
 
-# 1. Clean-room & secrets check
-echo ""
-echo "[Step 1/5] Checking clean-room and secrets baseline..."
-bash "$SCRIPT_DIR/../tools/guard.sh" "$REPO_ROOT"
+FAILED=""; SKIPPED=""; RAN=0
+step() {
+  local label="$1"; shift
+  printf '\n> %s\n' "$label"; RAN=$((RAN + 1))
+  if "$@"; then printf 'ok  %s\n' "$label"; else printf 'FAIL %s\n' "$label"; FAILED="$FAILED, $label"; fi
+}
+staged() { git diff --cached --name-only --diff-filter=ACMR -- "$@"; }
+skip() {
+  case "$SKIPPED," in *", $1,"*) return 0 ;; esac
+  printf 'SKIPPED %s\n' "$1" >&2; SKIPPED="$SKIPPED, $1"
+}
+have() { if command -v "$1" >/dev/null 2>&1 || [ -x "$1" ]; then return 0; fi; skip "$1 (not installed)"; return 1; }
 
-# 2. Meta-file integrity check
-echo ""
-echo "[Step 2/5] Checking Unity .meta file integrity..."
-MISSING_META=0
-for ROOT in "$REPO_ROOT/Packages/io.github.thesanketkale.ui-context" "$REPO_ROOT/Projects/Sample/Assets"; do
-    if [ -d "$ROOT" ]; then
-        while IFS= read -r -d '' ITEM; do
-            case "$ITEM" in
-                *.meta|*~|*~/|*/bin|*/bin/*|*/obj|*/obj/*|*/Documentation~|*/Documentation~/*) continue ;;
-            esac
-            if [ ! -f "$ITEM.meta" ]; then
-                echo "Missing .meta file for: $ITEM"
-                MISSING_META=$((MISSING_META + 1))
-            fi
-        done < <(find "$ROOT" \( -type f -o -type d \) -print0)
+# ---------------------------------------------------------------- FAST ----
+fast_checks() {
+  # dotnet format check on Core.Tests
+  if have dotnet; then
+    if [ -d "tests/Core.Tests" ]; then
+      step "dotnet format Core.Tests" dotnet format --verify-no-changes tests/Core.Tests
+    elif [ -d "tests/UiContext.Core.Tests" ]; then
+      step "dotnet format Core.Tests" dotnet format --verify-no-changes tests/UiContext.Core.Tests
     fi
-done
+  fi
 
-if [ "$MISSING_META" -gt 0 ]; then
-    echo "FAILED: $MISSING_META missing .meta file(s) found!"
-    exit 1
+  # CLI lint and typecheck
+  if have npm && [ -f "cli/package.json" ]; then
+    if grep -q '"lint"' cli/package.json; then
+      step "npm run lint (cli)" npm --prefix cli run lint
+    fi
+    if grep -q '"typecheck"' cli/package.json; then
+      step "npm run typecheck (cli)" npm --prefix cli run typecheck
+    fi
+  fi
+
+  # Node check-meta script
+  if have node && [ -f "scripts/check-meta.mjs" ]; then
+    step "check-meta" node scripts/check-meta.mjs
+  fi
+
+  # Actionlint workflow validation
+  if have actionlint && [ -d ".github/workflows" ]; then
+    step "actionlint" actionlint
+  fi
+}
+
+# ---------------------------------------------------------------- FULL ----
+full_checks() {
+  # dotnet test suite
+  if have dotnet; then
+    if [ -d "tests/Core.Tests" ]; then
+      step "dotnet test Core.Tests" dotnet test tests/Core.Tests --verbosity normal
+    elif [ -d "tests/UiContext.Core.Tests" ]; then
+      step "dotnet test Core.Tests" dotnet test tests/UiContext.Core.Tests --verbosity normal
+    fi
+  fi
+
+  # TypeScript CLI and MCP test suite
+  if have npm && [ -f "cli/package.json" ]; then
+    if grep -q '"test"' cli/package.json; then
+      step "npm test (cli)" npm --prefix cli test
+    fi
+  fi
+
+  # Validate goldens against schemas
+  if have node && [ -f "scripts/validate-goldens.mjs" ]; then
+    step "validate goldens (ajv)" node scripts/validate-goldens.mjs
+  fi
+}
+
+fast_checks
+if [ "$MODE" = "full" ]; then full_checks; fi
+
+if [ -n "$FAILED" ]; then
+  printf '\nverify %s: FAILED (%s)\n' "$MODE" "${FAILED#, }"
+  exit 1
 fi
-echo "Unity .meta check PASSED."
-
-# 3. Workflow syntax check
-echo ""
-echo "[Step 3/5] Validating GitHub Actions workflows..."
-if [ -d "$REPO_ROOT/.github/workflows" ]; then
-    for WF in "$REPO_ROOT"/.github/workflows/*.yml; do
-        if [ -f "$WF" ]; then
-            grep -q "name:" "$WF" || { echo "Invalid workflow: $WF"; exit 1; }
-            grep -q "on:" "$WF" || { echo "Invalid workflow: $WF"; exit 1; }
-        fi
-    done
-    echo "Workflow syntax check PASSED."
+if [ -n "$SKIPPED" ]; then
+  printf '\nverify %s: INCOMPLETE. %d checks passed, NOT VERIFIED (skipped): %s\n' "$MODE" "$RAN" "${SKIPPED#, }"
+  exit 0
 fi
-
-if [ "$MODE" = "fast" ]; then
-    echo ""
-    echo "=== Verification PASSED (fast mode complete) ==="
-    exit 0
+if [ "$RAN" -eq 0 ]; then
+  printf '\nverify %s: NO CHECKS RAN. Nothing is configured yet; fill fast_checks/full_checks (init-project does this).\n' "$MODE"
+  if [ "$MODE" = "full" ]; then exit 3; fi
+  exit 0
 fi
-
-# 4. .NET Core engine unit tests
-echo ""
-echo "[Step 4/5] Running .NET Core test suite..."
-TEST_CSPROJ="$REPO_ROOT/tests/UiContext.Core.Tests/UiContext.Core.Tests.csproj"
-if [ -f "$TEST_CSPROJ" ]; then
-    dotnet test "$TEST_CSPROJ" -c Release --verbosity normal
-    echo ".NET Core test suite PASSED."
-fi
-
-# 5. TypeScript CLI and MCP test suite
-echo ""
-echo "[Step 5/5] Running TypeScript CLI & MCP test suite..."
-CLI_DIR="$REPO_ROOT/cli"
-if [ -f "$CLI_DIR/package.json" ]; then
-    (
-        cd "$CLI_DIR"
-        if [ ! -d "node_modules" ]; then
-            npm install --silent
-        fi
-        npm test
-    )
-    echo "CLI & MCP test suite PASSED."
-fi
-
-echo ""
-echo "=== Verification PASSED (full mode complete) ==="
-exit 0
+printf '\nverify %s: OK (%d checks)\n' "$MODE" "$RAN"
